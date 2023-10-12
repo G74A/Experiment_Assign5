@@ -1,42 +1,102 @@
 // CISC230 - Task List 230 - Experiment Assign5
 // Gail Anderson 
 
-// Standard libraries
 #include <algorithm>
-#include <climits>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <string>
 
-// *** Add any additional #include's you need here
-
 using namespace std;
 
+// Function object to facilitate saving tasks to file
+class SaveTasks {
+public:
+    ofstream& file;
+    SaveTasks(ofstream& f) : file(f) {}
+    void operator() (const string& task) { file << task << endl; }
+};
 
-// Prototypes for support functions
-int get_int(const string& prompt);
-void load_tasks(list<string>& tasks);
-void save_tasks(list<string>& tasks);
+// Template class for managing task lists
+template <typename T>
+class TaskList {
+public:
+    TaskList(const std::string& file) : filename_(file) {
+        load_tasks();
+    }
 
-// Prototypes for task management functions
-void add_task(list<string>& tasks);
-void delete_task(list<string>& tasks);
-void insert_task(list<string>& tasks);
-void move_task(list<string>& tasks);
-void print_tasks(const list<string>& tasks);
+    void print_tasks() {
+        print_task_list();
+    }
 
-// main - Creates a list of strings for storing tasks. Loads saved tasks
-// from file tasklist.txt. Presents a menu for managing the task list,
-// calling the corresponding functions. Prior to exit, saves all tasks to
-// file tasklist.txt.
+    void insert_task(const T& task) {
+        tasks_.push_back(task);
+        save_tasks();
+    }
 
+    void move_task(int fromIndex, int toIndex) {
+        if (fromIndex >= 0 && fromIndex < tasks_.size() &&
+            toIndex >= 0 && toIndex < tasks_.size()) {
+            auto task = tasks_.begin();
+            advance(task, fromIndex);
+            T task_to_move = *task;
+            tasks_.erase(task);
+            task = tasks_.begin();
+            advance(task, toIndex);
+            tasks_.insert(task, task_to_move);
+            save_tasks();
+        } else {
+            cout << "Invalid indices. Move operation failed." << endl;
+        }
+    }
 
-int main () {
-    list<string> tasks;
-    load_tasks(tasks);
+    void delete_task(int index) {
+        if (index >= 0 && index < tasks_.size()) {
+            auto task = tasks_.begin();
+            advance(task, index);
+            tasks_.erase(task);
+            save_tasks();
+        } else {
+            cout << "Invalid index. Delete operation failed." << endl;
+        }
+    }
 
-    cout << "Task List 230\n";
+private:
+    std::string filename_;
+    list<T> tasks_;
+
+    void load_tasks() {
+        std::ifstream file(filename_);
+        if (file.is_open()) {
+            T task;
+            while (getline(file, task)) {
+                tasks_.push_back(task);
+            }
+            file.close();
+        }
+    }
+
+    void print_task_list() {
+        int index = 1;
+        for (const T& task : tasks_) {
+            cout << index << ". " << task << endl;
+            index++;
+        }
+    }
+
+    void save_tasks() {
+        ofstream file(filename_);
+        if (file.is_open()) {
+            for (const T& task : tasks_) {
+                file << task << endl;
+            }
+            file.close();
+        }
+    }
+};
+
+int main() {
+    TaskList<string> task_list("tasklist.txt");
 
     bool done = false;
     do {
@@ -49,57 +109,25 @@ int main () {
         cout << "9. Exit\n\n";
 
         switch (get_int("Enter option: ")) {
-            case 1: print_tasks(tasks); break;
-            case 2: add_task(tasks); break;
-            case 3: insert_task(tasks); break;
-            case 4: move_task(tasks); break;
-            case 5: delete_task(tasks); break;
+            case 1: task_list.print_tasks(); break;
+            case 2: add_task(task_list); break;
+            case 3: insert_task(task_list); break;
+            case 4: move_task(task_list); break;
+            case 5: delete_task(task_list); break;
             case 9: done = true;
         }
     } while (!done);
 
-    save_tasks(tasks);
+    return 0;
 }
 
-// get_int - Prompts for and inputs and integer. Ensures that an integer is
-// entered and handles invalid integer input.
-int get_int(const string& prompt) {
-    cout << prompt;
-    int input;
-    while (!(cin >> input)) {
-        cin.clear();
-        cin.ignore(INT_MAX, '\n');
-        cout << "An integer is expected: ";
-    }
-    cin.ignore(INT_MAX, '\n');
-    return input;
-}
 
-// load_tasks - Loads the task list saved in file tasklist.txt. Assumes the
-// parameter given is an empty list.
-void load_tasks(list<string>& tasks) {
-    ifstream f("tasklist.txt");
-    string task;
-    while (getline(f, task))
-        tasks.push_back(task);
-}
 
-// write_task - Function object to facilitate saving tasks to file
-// tasklist.txt. Used by function save_tasks.
-class write_task {
-public:
-    ofstream& f;
-    write_task(ofstream& file) : f(file) {}
-    void operator() (const string& task) { f << task << endl; }
-};
 
-// save_tasks - Writes tasks to file tasklist.txt. Iterates through
-// the task list using the for_each algorithm, and uses the write_task
-// function object to write each task.
-void save_tasks(list<string>& tasks) {
-    ofstream f("tasklist.txt");
-    for_each(tasks.begin(), tasks.end(), write_task(f));
-}
+
+
+
+
 
 // add_task - Adds a task to the task list. Prompts for and inputs
 // a task (string) and adds the task to the end of the task list.
