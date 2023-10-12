@@ -20,6 +20,9 @@ public:
 // Template class for managing task lists
 template <typename T>
 class TaskList {
+private:
+    std::string filename_;
+    list<T> tasks_;
 public:
     TaskList(const std::string& file) : filename_(file) {
         load_tasks();
@@ -61,9 +64,7 @@ public:
         }
     }
 
-private:
-    std::string filename_;
-    list<T> tasks_;
+
 
     void load_tasks() {
         std::ifstream file(filename_);
