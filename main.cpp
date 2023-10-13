@@ -121,10 +121,11 @@ void delete_task(list<string>& tasks) {
         auto it = tasks.begin();
         advance(it, position - 1);
         tasks.erase(it);
-    else 
+    } else {
         cout << "Invalid task number. Task not deleted." << endl;
     }
 }
+
 
 void insert_task(list<string>& tasks) {
     // Prompt for a task number
