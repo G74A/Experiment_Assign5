@@ -8,6 +8,7 @@
 #include <list>
 #include <string>
 
+// *** Add any additional #include's you need here
 using namespace std;
 
 // Prototypes for support functions
@@ -21,6 +22,11 @@ void delete_task(list<string>& tasks);
 void insert_task(list<string>& tasks);
 void move_task(list<string>& tasks);
 void print_tasks(const list<string>& tasks);
+
+// main - Creates a list of strings for storing tasks. Loads saved tasks
+// from file tasklist.txt. Presents a menu for managing the task list,
+// calling the corresponding functions. Prior to exit, saves all tasks to
+// file tasklist.txt.
 
 int main () {
     list<string> tasks;
@@ -51,6 +57,8 @@ int main () {
     save_tasks(tasks);
 }
 
+// get_int - Prompts for and inputs and integer. Ensures that an integer is
+// entered and handles invalid integer input.
 int get_int(const string& prompt) {
     cout << prompt;
     int input;
@@ -63,6 +71,8 @@ int get_int(const string& prompt) {
     return input;
 }
 
+// load_tasks - Loads the task list saved in file tasklist.txt. Assumes the
+// parameter given is an empty list.
 void load_tasks(list<string>& tasks) {
     ifstream file("tasklist.txt");
     string task;
@@ -70,6 +80,18 @@ void load_tasks(list<string>& tasks) {
         tasks.push_back(task);
 }
 
+// write_task - Function object to facilitate saving tasks to file
+// tasklist.txt. Used by function save_tasks.
+class write_task {
+public:
+    ofstream& file;
+    write_task(ofstream& file) : file(file) {}
+    void operator() (const string& task) { file << task << endl; }
+};
+
+// save_tasks - Writes tasks to file tasklist.txt. Iterates through
+// the task list using the for_each algorithm, and uses the write_task
+// function object to write each task.
 void save_tasks(const list<string>& tasks) {
     ofstream file("tasklist.txt");
     for (const string& task : tasks) {
@@ -77,6 +99,8 @@ void save_tasks(const list<string>& tasks) {
     }
 }
 
+// add_task - Adds a task to the task list. Prompts for and inputs
+// a task (string) and adds the task to the end of the task list.
 void add_task(list<string>& tasks) {
     string task;
     cout << "Enter task: ";
@@ -84,18 +108,31 @@ void add_task(list<string>& tasks) {
     tasks.push_back(task);
 }
 
+// *** Add your code below this line
+
 void delete_task(list<string>& tasks) {
+    // Prompt for a task number
+    // If task number is valid:
+    //  delete task from the list
+    // Else:
+    //  issue an error message
     int position = get_int("Enter the task number to delete: ");
     if (position >= 1 && position <= tasks.size()) {
         auto it = tasks.begin();
         advance(it, position - 1);
         tasks.erase(it);
-    } else {
+    else 
         cout << "Invalid task number. Task not deleted." << endl;
     }
 }
 
 void insert_task(list<string>& tasks) {
+    // Prompt for a task number
+    // If task number is valid:
+    //  prompt for and input task
+    //  insert task at the requested position
+    // Else:
+    //  issue an error message
     int position = get_int("Enter the position to insert the task: ");
     if (position < 1 || position > tasks.size() + 1) {
         cout << "Invalid position. Task not inserted." << endl;
@@ -112,6 +149,15 @@ void insert_task(list<string>& tasks) {
 }
 
 void move_task(list<string>& tasks) {
+    // Prompt for a task number
+    // If task number is valid:
+    //  Prompt for new position for task
+    //  If new position is valid:
+    //   move task to new position
+    //  Else: 
+    //   issue an error message
+    // Else:
+    //  issue an error message
     int fromPosition = get_int("Enter the position of the task to move: ");
     int toPosition = get_int("Enter the new position for the task: ");
 
@@ -131,6 +177,9 @@ void move_task(list<string>& tasks) {
 }
 
 void print_tasks(const list<string>& tasks) {
+    // Print all tasks with position number, for example:
+    //  1. Pick up milk
+    //  2. Cut the grass
     int count = 1;
     for (const string& task : tasks) {
         cout << count << ". " << task << endl;
